@@ -24,6 +24,11 @@ function renderRoot(root: FiberRootNode) {
 			workInProgress = null;
 		}
 	} while (true);
+
+	const finishedWork = root.current.alternate;
+	root.finishedWork = finishedWork;
+
+	//wip fiberNode树 树中的flags
 }
 
 function workLoop() {
