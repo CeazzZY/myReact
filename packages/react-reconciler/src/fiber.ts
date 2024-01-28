@@ -81,6 +81,7 @@ export const createWorkInProgress = (
 		wip.subtreeFlags = NoFlags;
 	}
 	wip.type = current.type;
+	wip.updateQueue = current.updateQueue;
 	wip.child = current.child;
 	wip.memoizedProps = current.memoizedProps;
 	wip.memoizedState = current.memoizedState;
