@@ -10,9 +10,10 @@ import { Container } from 'hostConfig';
 import { ReactElementType } from 'shared/ReactTypes';
 import { scheduleUpdateOnFiber } from './workLoop';
 
-export function createContainer(container: Container) {
+export function createContainer(container: Container): FiberRootNode {
 	//创建根fiber
 	const hostRootFiber = new FiberNode(HostRoot, {}, null);
+
 	//创建根节点，并将根节点的current指向根fiber
 	const root = new FiberRootNode(container, hostRootFiber);
 

@@ -43,6 +43,7 @@ function updateHostRoot(wip: FiberNode) {
 	const updateQueue = wip.updateQueue as UpdateQueue<Element>;
 	const pending = updateQueue.shared.pending;
 	updateQueue.shared.pending = null;
+
 	const { memoizedState } = processUpdateQueue(baseState, pending);
 	wip.memoizedState = memoizedState;
 
@@ -61,6 +62,7 @@ function updateHostComponent(wip: FiberNode) {
 function reconcileChildren(wip: FiberNode, children?: ReactElementType) {
 	const current = wip.alternate;
 
+	//???
 	if (current !== null) {
 		wip.child = reconcileChildFibers(wip, current?.child, children);
 	} else {

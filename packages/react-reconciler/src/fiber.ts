@@ -10,11 +10,13 @@ export class FiberNode {
 	pendingProps: Props;
 	key: Key;
 	stateNode: any;
+	ref: Ref;
+
 	return: FiberNode | null;
 	sibling: FiberNode | null;
 	child: FiberNode | null;
 	index: number;
-	ref: Ref;
+
 	memoizedProps: Props | null;
 	memoizedState: any;
 	alternate: FiberNode | null;
@@ -49,12 +51,16 @@ export class FiberNode {
 }
 
 export class FiberRootNode {
+	//root
 	container: Container;
 	current: FiberNode;
+
 	finishedWork: FiberNode | null;
+
 	constructor(container: Container, hostRootFiber: FiberNode) {
 		this.container = container;
 		this.current = hostRootFiber;
+		//rootFiber的stateNode指向fiberRoot，而不是rootFiber本身
 		hostRootFiber.stateNode = this;
 		this.finishedWork = null;
 	}
