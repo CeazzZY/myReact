@@ -1,5 +1,8 @@
 {
     "compileOnSave": true,
+    "include": [
+        "./packages/**/*"
+    ],
     "compilerOptions": {
         "target": "ESNext",
         "useDefineForClassFields": true,

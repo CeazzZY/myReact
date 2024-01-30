@@ -22,6 +22,10 @@ interface Hook {
 	next: Hook | null;
 }
 
+const HooksDispatcherOnMount: Dispatcher = {
+	useState: mountState
+};
+
 export function renderWithHooks(wip: FiberNode) {
 	currentlyRenderingFiber = wip;
 	wip.memoizedState = null;
@@ -43,10 +47,6 @@ export function renderWithHooks(wip: FiberNode) {
 	return children;
 }
 
-const HooksDispatcherOnMount: Dispatcher = {
-	useState: mountState
-};
-
 function mountState<State>(
 	initialState: (() => State) | State
 ): [State, Dispatch<State>] {
@@ -62,6 +62,7 @@ function mountState<State>(
 
 	const queue = createUpdateQueue<State>();
 	hook.updateQueue = queue;
+	hook.memoizedState = memoizedState;
 
 	//@ts-ignore
 	const dispatch = dispatchSetState.bind(null, currentlyRenderingFiber, queue);
