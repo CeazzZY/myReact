@@ -62,7 +62,6 @@ function updateHostComponent(wip: FiberNode) {
 function reconcileChildren(wip: FiberNode, children?: ReactElementType) {
 	const current = wip.alternate;
 
-	//???
 	if (current !== null) {
 		wip.child = reconcileChildFibers(wip, current?.child, children);
 	} else {

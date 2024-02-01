@@ -24,7 +24,7 @@ export function createContainer(container: Container): FiberRootNode {
 }
 
 export function updateContainer(
-	element: ReactElementType | null,
+	element: ReactElementType | null, //eg: <App/>
 	root: FiberRootNode
 ) {
 	const hostRootFiber = root.current;

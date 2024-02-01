@@ -7,5 +7,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(<App />);
 function App() {
 	const [num, setNum] = useState(1);
 
-	return <div onClick={() => setNum(num + 1)}>{num}</div>;
+	return (
+		<div className="aa" onClick={() => setNum(num + 1)}>
+			<p>
+				<span>{num}</span>
+			</p>
+		</div>
+	);
 }
