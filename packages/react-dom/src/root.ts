@@ -1,3 +1,4 @@
+import { initEvent } from './SyntheticEvent';
 import { ReactElementType } from './../../shared/ReactTypes';
 import {
 	createContainer,
@@ -16,6 +17,7 @@ export function createRoot(container: Container) {
 
 	return {
 		render(element: ReactElementType) {
+			initEvent(container, 'click');
 			return updateContainer(element, root);
 		}
 	};
