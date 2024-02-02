@@ -24,14 +24,6 @@ interface Hook {
 	next: Hook | null;
 }
 
-const HooksDispatcherOnMount: Dispatcher = {
-	useState: mountState
-};
-
-const HooksDispatcherOnUpdate: Dispatcher = {
-	useState: updateState
-};
-
 export function renderWithHooks(wip: FiberNode) {
 	currentlyRenderingFiber = wip;
 	wip.memoizedState = null;
@@ -55,6 +47,10 @@ export function renderWithHooks(wip: FiberNode) {
 	return children;
 }
 
+const HooksDispatcherOnMount: Dispatcher = {
+	useState: mountState
+};
+
 function mountState<State>(
 	initialState: (() => State) | State
 ): [State, Dispatch<State>] {
@@ -77,33 +73,9 @@ function mountState<State>(
 	queue.dispatch = dispatch;
 	return [memoizedState, dispatch];
 }
-
-function updateState<State>(): [State, Dispatch<State>] {
-	//找到当前useState对应的hook数据
-	const hook = updateWorkInProgressHook();
-
-	//计算新state
-	const queue = hook.updateQueue as UpdateQueue<State>;
-	const pending = queue.shared.pending;
-
-	if (pending !== null) {
-		const { memoizedState } = processUpdateQueue(hook.memoizedState, pending);
-		hook.memoizedState = memoizedState;
-	}
-
-	return [hook.memoizedState, queue.dispatch as Dispatch<State>];
-}
-
-function dispatchSetState<State>(
-	fiber: FiberNode,
-	updateQueue: UpdateQueue<State>,
-	action: Action<State>
-) {
-	const update = createUpdate(action);
-	enqueueUpdate(updateQueue, update);
-
-	scheduleUpdateOnFiber(fiber);
-}
+const HooksDispatcherOnUpdate: Dispatcher = {
+	useState: updateState
+};
 
 function mountWorkInProgressHook(): Hook {
 	const hook: Hook = {
@@ -127,6 +99,33 @@ function mountWorkInProgressHook(): Hook {
 	}
 
 	return workInprogressHook;
+}
+
+function dispatchSetState<State>(
+	fiber: FiberNode,
+	updateQueue: UpdateQueue<State>,
+	action: Action<State>
+) {
+	const update = createUpdate(action);
+	enqueueUpdate(updateQueue, update);
+
+	scheduleUpdateOnFiber(fiber);
+}
+
+function updateState<State>(): [State, Dispatch<State>] {
+	//找到当前useState对应的hook数据
+	const hook = updateWorkInProgressHook();
+
+	//计算新state
+	const queue = hook.updateQueue as UpdateQueue<State>;
+	const pending = queue.shared.pending;
+
+	if (pending !== null) {
+		const { memoizedState } = processUpdateQueue(hook.memoizedState, pending);
+		hook.memoizedState = memoizedState;
+	}
+
+	return [hook.memoizedState, queue.dispatch as Dispatch<State>];
 }
 
 function updateWorkInProgressHook(): Hook {

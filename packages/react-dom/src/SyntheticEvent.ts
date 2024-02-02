@@ -19,12 +19,8 @@ interface SyntheticEvent extends Event {
 	__stopPropagation: boolean;
 }
 
-export function updateFiberProps(node: DOMElement, props: Props) {
-	node[elementPropsKey] = props;
-}
-
 export function initEvent(container: Container, eventType: string) {
-	if (!validEventTypeList) {
+	if (!validEventTypeList.includes(eventType)) {
 		console.warn('不支持当前的', eventType, '事件');
 		return;
 	}
@@ -35,21 +31,6 @@ export function initEvent(container: Container, eventType: string) {
 	container.addEventListener(eventType, (e) => {
 		dispatchEvent(container, eventType, e);
 	});
-}
-
-function createSyntheticEvent(e: Event): SyntheticEvent {
-	const syntheticEvent = e as SyntheticEvent;
-	syntheticEvent.__stopPropagation = false;
-	const originStopPropagation = e.stopPropagation;
-
-	syntheticEvent.stopPropagation = () => {
-		syntheticEvent.__stopPropagation = true;
-		if (originStopPropagation) {
-			originStopPropagation();
-		}
-	};
-
-	return syntheticEvent;
 }
 
 function dispatchEvent(container: Container, eventType: string, e: Event) {
@@ -73,24 +54,6 @@ function dispatchEvent(container: Container, eventType: string, e: Event) {
 		//便利bubble
 		triggerEventFlow(bubble, se);
 	}
-}
-
-const triggerEventFlow = (paths: EventCallback[], se: SyntheticEvent) => {
-	for (let i = 0; i < paths.length; i++) {
-		const callback = paths[i];
-		callback.call(null, se);
-		if (se.__stopPropagation) {
-			break;
-		}
-	}
-};
-
-function getEventCallbackNameFromEventType(
-	eventType: string
-): string[] | undefined {
-	return {
-		click: ['onClickCapture', 'onClick']
-	}[eventType];
 }
 
 function collectPaths(
@@ -125,4 +88,41 @@ function collectPaths(
 		targetElement = targetElement.parentNode as DOMElement;
 	}
 	return paths;
+}
+
+function getEventCallbackNameFromEventType(
+	eventType: string
+): string[] | undefined {
+	return {
+		click: ['onClickCapture', 'onClick']
+	}[eventType];
+}
+
+function createSyntheticEvent(e: Event): SyntheticEvent {
+	const syntheticEvent = e as SyntheticEvent;
+	syntheticEvent.__stopPropagation = false;
+	const originStopPropagation = e.stopPropagation;
+
+	syntheticEvent.stopPropagation = () => {
+		syntheticEvent.__stopPropagation = true;
+		if (originStopPropagation) {
+			originStopPropagation();
+		}
+	};
+
+	return syntheticEvent;
+}
+
+const triggerEventFlow = (paths: EventCallback[], se: SyntheticEvent) => {
+	for (let i = 0; i < paths.length; i++) {
+		const callback = paths[i];
+		callback.call(null, se);
+		if (se.__stopPropagation) {
+			break;
+		}
+	}
+};
+
+export function updateFiberProps(node: DOMElement, props: Props) {
+	node[elementPropsKey] = props;
 }

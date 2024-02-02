@@ -15,10 +15,6 @@ import {
 import { NoFlags, Update } from './fiberFlags';
 import { updateFiberProps } from 'react-dom/src/SyntheticEvent';
 
-function markUpdate(fiber: FiberNode) {
-	fiber.flags |= Update;
-}
-
 export const completeWork = (wip: FiberNode) => {
 	//递归
 
@@ -67,6 +63,10 @@ export const completeWork = (wip: FiberNode) => {
 			break;
 	}
 };
+
+function markUpdate(fiber: FiberNode) {
+	fiber.flags |= Update;
+}
 
 function appendAllChildren(parent: Container, wip: FiberNode) {
 	let node = wip.child;

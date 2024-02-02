@@ -7,8 +7,26 @@ import { HostRoot } from './workTags';
 
 let workInProgress: FiberNode | null = null;
 
-function prepareFreshStack(root: FiberRootNode) {
-	workInProgress = createWorkInProgress(root.current, {});
+export function scheduleUpdateOnFiber(fiber: FiberNode) {
+	const root = markUpdateFromFiberToRoot(fiber);
+	renderRoot(root);
+}
+
+//传入更新的fiber，会一直向上遍历找到fiberRoot
+function markUpdateFromFiberToRoot(fiber: FiberNode) {
+	let node = fiber;
+	let parent = node.return;
+
+	//rootFiber没有return，只有stateNode。所以这一步会找到rootFiber
+	while (parent !== null) {
+		node = parent;
+		parent = node.return;
+	}
+	//通过rootFiber的stateNode找到FiberRoot
+	if (node.tag === HostRoot) {
+		return node.stateNode;
+	}
+	return null;
 }
 
 function renderRoot(root: FiberRootNode) {
@@ -32,6 +50,42 @@ function renderRoot(root: FiberRootNode) {
 
 	//wip fiberNode树 树中的flags
 	commitRoot(root);
+}
+
+function prepareFreshStack(root: FiberRootNode) {
+	workInProgress = createWorkInProgress(root.current, {});
+}
+
+function workLoop() {
+	while (workInProgress !== null) {
+		performUnitOfWork(workInProgress);
+	}
+}
+
+function performUnitOfWork(fiber: FiberNode) {
+	const next = beginWork(fiber);
+	fiber.memoizedProps = fiber.pendingProps;
+
+	if (next === null) {
+		completeUnitOfWork(fiber);
+	} else {
+		workInProgress = next;
+	}
+}
+
+function completeUnitOfWork(fiber: FiberNode) {
+	let node: FiberNode | null = fiber;
+	do {
+		completeWork(node);
+		const sibling = node.sibling;
+
+		if (sibling !== null) {
+			workInProgress = sibling;
+			return;
+		}
+		node = node.return;
+		workInProgress = node;
+	} while (node !== null);
 }
 
 function commitRoot(root: FiberRootNode) {
@@ -66,58 +120,4 @@ function commitRoot(root: FiberRootNode) {
 	} else {
 		root.current = finishedWork;
 	}
-}
-
-function workLoop() {
-	while (workInProgress !== null) {
-		performUnitOfWork(workInProgress);
-	}
-}
-
-export function scheduleUpdateOnFiber(fiber: FiberNode) {
-	const root = markUpdateFromFiberToRoot(fiber);
-	renderRoot(root);
-}
-
-//传入更新的fiber，会一直向上遍历找到fiberRoot
-function markUpdateFromFiberToRoot(fiber: FiberNode) {
-	let node = fiber;
-	let parent = node.return;
-
-	//rootFiber没有return，只有stateNode。所以这一步会找到rootFiber
-	while (parent !== null) {
-		node = parent;
-		parent = node.return;
-	}
-	//通过rootFiber的stateNode找到FiberRoot
-	if (node.tag === HostRoot) {
-		return node.stateNode;
-	}
-	return null;
-}
-
-function performUnitOfWork(fiber: FiberNode) {
-	const next = beginWork(fiber);
-	fiber.memoizedProps = fiber.pendingProps;
-
-	if (next === null) {
-		completeUnitOfWork(fiber);
-	} else {
-		workInProgress = next;
-	}
-}
-
-function completeUnitOfWork(fiber: FiberNode) {
-	let node: FiberNode | null = fiber;
-	do {
-		completeWork(node);
-		const sibling = node.sibling;
-
-		if (sibling !== null) {
-			workInProgress = sibling;
-			return;
-		}
-		node = node.return;
-		workInProgress = node;
-	} while (node !== null);
 }

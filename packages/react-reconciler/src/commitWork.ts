@@ -77,26 +77,104 @@ const commitMutationEffectsOnFiber = (finishedWork: FiberNode) => {
 	}
 };
 
-function recordHostChildrenToDelete(
-	childrenToDelete: FiberNode[],
-	unmountFiber: FiberNode
-) {
-	//1. 找到第一个root Host节点
-	const lastOne = childrenToDelete[childrenToDelete.length - 1];
+const commitPlacement = (finishedWork: FiberNode) => {
+	if (__DEV__) {
+		console.warn('执行Placement', finishedWork);
+	}
+	//parent DOM
+	const hostParent = getHostParent(finishedWork);
 
-	if (!lastOne) {
-		childrenToDelete.push(unmountFiber);
-	} else {
-		let node = lastOne.sibling;
-		while (node !== null) {
-			if (unmountFiber === node) {
-				childrenToDelete.push(unmountFiber);
-			}
-			node = node.sibling;
+	//host sibling
+	const sibling = getHostSibling(finishedWork);
+
+	// finishedWork
+	if (hostParent !== null) {
+		insertOrAppendPlacementNodeIntoContainer(finishedWork, hostParent, sibling);
+	}
+};
+
+function getHostParent(fiber: FiberNode): Container | null {
+	let parent = fiber.return;
+	while (parent) {
+		const parentTag = parent.tag;
+
+		if (parentTag === HostComponent) {
+			return parent.stateNode as Container;
 		}
+		if (parentTag === HostRoot) {
+			return (parent.stateNode as FiberRootNode).container;
+		}
+		parent = parent.return;
 	}
 
-	//2. 每找到一个 host节点， 判断这个节点是不是第一个节点的兄弟节点
+	if (__DEV__) {
+		console.warn('未找到host parent');
+	}
+	return null;
+}
+
+function getHostSibling(fiber: FiberNode) {
+	let node: FiberNode = fiber;
+
+	findSibling: while (true) {
+		while (node.sibling === null) {
+			const parent = node.return;
+
+			if (
+				parent === null ||
+				parent.tag === HostComponent ||
+				parent.tag === HostRoot
+			) {
+				return null;
+			}
+			node = parent;
+		}
+		node.sibling.return = node.return;
+		node = node.sibling;
+
+		while (node.tag !== HostText && node.tag !== HostComponent) {
+			//向下遍历
+			if ((node.flags & Placement) !== NoFlags) {
+				continue findSibling;
+			}
+			if (node.child === null) {
+				continue findSibling;
+			} else {
+				node.child.return = node;
+				node = node.child;
+			}
+		}
+
+		if ((node.flags & Placement) === NoFlags) {
+			return node.stateNode;
+		}
+	}
+}
+
+function insertOrAppendPlacementNodeIntoContainer(
+	finishedWork: FiberNode,
+	hostParent: Container,
+	before?: Instance
+) {
+	//fiber host
+	if (finishedWork.tag === HostComponent || finishedWork.tag === HostText) {
+		if (before) {
+			insertChildToContainer(finishedWork.stateNode, hostParent, before);
+		} else {
+			appendChildToContainer(hostParent, finishedWork.stateNode);
+		}
+		return;
+	}
+	const child = finishedWork.child;
+	if (child !== null) {
+		insertOrAppendPlacementNodeIntoContainer(child, hostParent);
+		let sibling = child.sibling;
+
+		while (sibling !== null) {
+			insertOrAppendPlacementNodeIntoContainer(sibling, hostParent);
+			sibling = sibling.sibling;
+		}
+	}
 }
 
 function commitDeletion(childToDelete: FiberNode) {
@@ -164,102 +242,23 @@ function commitNestedComponent(
 	}
 }
 
-const commitPlacement = (finishedWork: FiberNode) => {
-	if (__DEV__) {
-		console.warn('执行Placement', finishedWork);
-	}
-	//parent DOM
-	const hostParent = getHostParent(finishedWork);
-
-	//host sibling
-	const sibling = getHostSibling(finishedWork);
-
-	// finishedWork
-	if (hostParent !== null) {
-		insertOrAppendPlacementNodeIntoContainer(finishedWork, hostParent, sibling);
-	}
-};
-
-function getHostSibling(fiber: FiberNode) {
-	let node: FiberNode = fiber;
-
-	findSibling: while (true) {
-		while (node.sibling === null) {
-			const parent = node.return;
-
-			if (
-				parent === null ||
-				parent.tag === HostComponent ||
-				parent.tag === HostRoot
-			) {
-				return null;
-			}
-			node = parent;
-		}
-		node.sibling.return = node.return;
-		node = node.sibling;
-
-		while (node.tag !== HostText && node.tag !== HostComponent) {
-			//向下遍历
-			if ((node.flags & Placement) !== NoFlags) {
-				continue findSibling;
-			}
-			if (node.child === null) {
-				continue findSibling;
-			} else {
-				node.child.return = node;
-				node = node.child;
-			}
-		}
-
-		if ((node.flags & Placement) === NoFlags) {
-			return node.stateNode;
-		}
-	}
-}
-
-function getHostParent(fiber: FiberNode): Container | null {
-	let parent = fiber.return;
-	while (parent) {
-		const parentTag = parent.tag;
-
-		if (parentTag === HostComponent) {
-			return parent.stateNode as Container;
-		}
-		if (parentTag === HostRoot) {
-			return (parent.stateNode as FiberRootNode).container;
-		}
-		parent = parent.return;
-	}
-
-	if (__DEV__) {
-		console.warn('未找到host parent');
-	}
-	return null;
-}
-
-function insertOrAppendPlacementNodeIntoContainer(
-	finishedWork: FiberNode,
-	hostParent: Container,
-	before?: Instance
+function recordHostChildrenToDelete(
+	childrenToDelete: FiberNode[],
+	unmountFiber: FiberNode
 ) {
-	//fiber host
-	if (finishedWork.tag === HostComponent || finishedWork.tag === HostText) {
-		if (before) {
-			insertChildToContainer(finishedWork.stateNode, hostParent, before);
-		} else {
-			appendChildToContainer(hostParent, finishedWork.stateNode);
-		}
-		return;
-	}
-	const child = finishedWork.child;
-	if (child !== null) {
-		insertOrAppendPlacementNodeIntoContainer(child, hostParent);
-		let sibling = child.sibling;
+	//1. 找到第一个root Host节点
+	const lastOne = childrenToDelete[childrenToDelete.length - 1];
 
-		while (sibling !== null) {
-			insertOrAppendPlacementNodeIntoContainer(sibling, hostParent);
-			sibling = sibling.sibling;
+	//2. 每找到一个 host节点， 判断这个节点是不是第一个节点的兄弟节点
+	if (!lastOne) {
+		childrenToDelete.push(unmountFiber);
+	} else {
+		let node = lastOne.sibling;
+		while (node !== null) {
+			if (unmountFiber === node) {
+				childrenToDelete.push(unmountFiber);
+			}
+			node = node.sibling;
 		}
 	}
 }

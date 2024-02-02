@@ -35,18 +35,6 @@ export const beginWork = (wip: FiberNode) => {
 	return null;
 };
 
-function updateFragment(wip: FiberNode) {
-	const nextChildren = wip.pendingProps;
-	reconcileChildren(wip, nextChildren);
-	return wip.child;
-}
-
-function updateFunctionComponent(wip: FiberNode) {
-	const nextChildren = renderWithHooks(wip);
-	reconcileChildren(wip, nextChildren);
-	return wip.child;
-}
-
 function updateHostRoot(wip: FiberNode) {
 	const baseState = wip.memoizedState;
 	const updateQueue = wip.updateQueue as UpdateQueue<Element>;
@@ -64,6 +52,18 @@ function updateHostRoot(wip: FiberNode) {
 function updateHostComponent(wip: FiberNode) {
 	const nextProps = wip.pendingProps;
 	const nextChildren = nextProps.children;
+	reconcileChildren(wip, nextChildren);
+	return wip.child;
+}
+
+function updateFunctionComponent(wip: FiberNode) {
+	const nextChildren = renderWithHooks(wip);
+	reconcileChildren(wip, nextChildren);
+	return wip.child;
+}
+
+function updateFragment(wip: FiberNode) {
+	const nextChildren = wip.pendingProps;
 	reconcileChildren(wip, nextChildren);
 	return wip.child;
 }
