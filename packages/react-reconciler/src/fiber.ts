@@ -8,6 +8,7 @@ import {
 	HostComponent,
 	WorkTag
 } from './workTags';
+import { Lane, Lanes, NoLane, NoLanes } from './fiberLanes';
 
 export class FiberNode {
 	type: any;
@@ -62,15 +63,17 @@ export class FiberRootNode {
 	//root
 	container: Container;
 	current: FiberNode;
-
 	finishedWork: FiberNode | null;
-
+	pendingLanes: Lanes;
+	finishedLane: Lane;
 	constructor(container: Container, hostRootFiber: FiberNode) {
 		this.container = container;
 		this.current = hostRootFiber;
 		//rootFiber的stateNode指向fiberRoot，而不是rootFiber本身
 		hostRootFiber.stateNode = this;
 		this.finishedWork = null;
+		this.pendingLanes = NoLanes;
+		this.finishedLane = NoLane;
 	}
 }
 
