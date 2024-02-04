@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Action } from 'shared/ReactTypes';
 
 export type Dispatch<State> = (action: Action<State>) => void;
 
 export interface Dispatcher {
 	useState: <T>(initialState: (() => T) | T) => [T, Dispatch<T>];
+	useEffect: (callback: () => void | void, deps: any[]) => void;
 }
 
 export const currentDispatcher: { current: Dispatcher | null } = {
