@@ -3,12 +3,14 @@ import { commitMutation } from './commitWork';
 import { completeWork } from './completeWork';
 import { FiberNode, FiberRootNode, createWorkInProgress } from './fiber';
 import { MutationMask, NoFlags } from './fiberFlags';
+import { Lane, mergeLanes } from './fiberLanes';
 import { HostRoot } from './workTags';
 
 let workInProgress: FiberNode | null = null;
 
-export function scheduleUpdateOnFiber(fiber: FiberNode) {
+export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
 	const root = markUpdateFromFiberToRoot(fiber);
+	markRootUpdated(root, lane);
 	renderRoot(root);
 }
 
@@ -27,6 +29,10 @@ function markUpdateFromFiberToRoot(fiber: FiberNode) {
 		return node.stateNode;
 	}
 	return null;
+}
+
+function markRootUpdated(root: FiberRootNode, lane: Lane) {
+	root.pendingLanes = mergeLanes(root.pendingLanes, lane);
 }
 
 function renderRoot(root: FiberRootNode) {
