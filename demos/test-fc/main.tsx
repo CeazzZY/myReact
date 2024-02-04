@@ -5,10 +5,15 @@ import ReactDOM from 'react-dom/client';
 ReactDOM.createRoot(document.getElementById('root')!).render(<App />);
 
 function App() {
+	const [num, setNum] = useState(0);
 	return (
-		<div>
-			<div></div>
-			<div></div>
+		<div
+			onClick={() => {
+				setNum((num) => num + 1);
+				setNum((num) => num + 1);
+				setNum((num) => num + 1);
+			}}>
+			{num}
 		</div>
 	);
 }

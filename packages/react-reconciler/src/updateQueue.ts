@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Dispatch } from 'react/src/currentDispatcher';
 import { Action } from './../../shared/ReactTypes';
 import { Lane } from './fiberLanes';
@@ -55,19 +56,33 @@ export const enqueueUpdate = <State>(
 //
 export const processUpdateQueue = <State>(
 	baseState: State,
-	pendingUpdate: Update<State> | null
+	pendingUpdate: Update<State> | null,
+	renderLane: Lane
 ): { memoizedState: State } => {
 	const result: ReturnType<typeof processUpdateQueue<State>> = {
 		memoizedState: baseState
 	};
 	if (pendingUpdate !== null) {
-		const action = pendingUpdate.action;
-		if (action instanceof Function) {
-			result.memoizedState = action(baseState);
-		} else {
-			result.memoizedState = action;
-		}
+		//第一个update
+		const first = pendingUpdate.next;
+		let pending = pendingUpdate.next as Update<any>;
+		do {
+			const updateLane = pending.lane;
+			if (updateLane === renderLane) {
+				const action = pending.action;
+				if (action instanceof Function) {
+					baseState = action(baseState);
+				} else {
+					baseState = action;
+				}
+			} else {
+				if (__DEV__) {
+					console.warn('不应该进入pendingUpdate !== null这里');
+				}
+			}
+			pending = pending.next as Update<any>;
+		} while (pending !== first);
 	}
-
+	result.memoizedState = baseState;
 	return result;
 };
