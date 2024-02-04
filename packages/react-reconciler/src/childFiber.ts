@@ -23,7 +23,6 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 		newChild?: any
 	) {
 		//判断<></>
-
 		const isUnkeyedTopLevelFragment =
 			typeof newChild === 'object' &&
 			newChild !== null &&
@@ -150,17 +149,16 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 				if (element.$$typeof === REACT_ELEMENT_TYPE) {
 					if (currentFiber.type === element.type) {
 						let props = element.props;
-						if (element.type === REACT_ELEMENT_TYPE) {
+						if (element.type === REACT_FRAGMENT_TYPE) {
 							props = element.props.children;
 						}
 						//type 相同
+						//当前节点看复用
 						const existing = useFiber(currentFiber, props);
 						existing.return = returnFiber;
-						//当前节点看复用
 						deleteRemainingChildren(returnFiber, currentFiber.sibling);
 						return existing;
 					}
-
 					//key相同，type不同 删除所有旧的
 					deleteRemainingChildren(returnFiber, currentFiber);
 					break;
@@ -171,14 +169,13 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 					}
 				}
 			} else {
-				//key不同,删除旧的
+				//key不同,删除旧的一个节点
 				deleteChild(returnFiber, currentFiber);
 				currentFiber = currentFiber.sibling;
 			}
 		}
 
 		//根据element创建一个fiber
-
 		let fiber;
 		if (element.type === REACT_FRAGMENT_TYPE) {
 			fiber = createFiberFromFragment(element.props.children, key);
