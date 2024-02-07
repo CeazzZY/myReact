@@ -126,7 +126,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 					lastPlacedIndex = oldIndex;
 				}
 			} else {
-				//mount  插入
+				//mount  插入 ？？？前面不是判断了 是否追中副作用？？
 				newFiber.flags |= Placement;
 			}
 		}
@@ -282,10 +282,6 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 						}
 					}
 					return createFiberFromElement(element);
-			}
-
-			if (Array.isArray(element) && __DEV__) {
-				console.warn('还未实现数组类型的child');
 			}
 
 			if (Array.isArray(element)) {

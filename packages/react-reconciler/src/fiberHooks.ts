@@ -49,6 +49,7 @@ export function renderWithHooks(wip: FiberNode, lane: Lane) {
 
 	const current = wip.alternate;
 
+	wip.updateQueue = null;
 	renderLane = lane;
 
 	if (current !== null) {
@@ -261,4 +262,43 @@ function updateWorkInProgressHook(): Hook {
 	return workInprogressHook;
 }
 
-function updateEffect() {}
+function updateEffect(create: EffectCallback | void, deps: EffectDeps) {
+	const hook = updateWorkInProgressHook();
+	const nextDeps = deps === undefined ? null : deps;
+	let destroy: EffectCallback | void;
+
+	if (currentHook !== null) {
+		const prevEffect = currentHook.memoizedState as Effect;
+		destroy = prevEffect.destroy;
+
+		if (nextDeps !== null) {
+			//浅比较
+			const prevDeps = prevEffect.deps;
+			if (areHookInputEqual(nextDeps, prevDeps)) {
+				hook.memoizedState = pushEffect(Passive, create, destroy, nextDeps);
+				return;
+			}
+		}
+		//不相等
+		(currentlyRenderingFiber as FiberNode).flags |= PassiveEffect;
+		hook.memoizedState = pushEffect(
+			Passive | HookHasEffect,
+			create,
+			destroy,
+			nextDeps
+		);
+	}
+}
+
+function areHookInputEqual(nextDeps: EffectDeps, prevDeps: EffectDeps) {
+	if (prevDeps === null || nextDeps === null) {
+		return false;
+	}
+	for (let i = 0; i < prevDeps.length && i < nextDeps.length; i++) {
+		if (Object.is(prevDeps[i], nextDeps[i])) {
+			continue;
+		}
+		return false;
+	}
+	return true;
+}

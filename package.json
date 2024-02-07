@@ -48,6 +48,8 @@
 		"vite": "^5.0.8"
 	},
 	"dependencies": {
-		"@rollup/plugin-replace": "^5.0.5"
+		"@rollup/plugin-replace": "^5.0.5",
+		"@types/scheduler": "^0.16.8",
+		"scheduler": "^0.23.0"
 	}
 }
