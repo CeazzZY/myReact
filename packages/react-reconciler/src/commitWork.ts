@@ -29,6 +29,8 @@ import { HookHasEffect } from './hookEffectTags';
 
 let nextEffect: FiberNode | null = null;
 
+//1.commit 阶段入口 找到第一个fiber(fiber没有子节点 or fiber的子节点flag没有标记操作)
+//2.对该节点进行操作 并开始进行递归中的归
 export const commitMutationEffect = (
 	finishedWork: FiberNode,
 	root: FiberRootNode
@@ -60,6 +62,7 @@ export const commitMutationEffect = (
 	}
 };
 
+//对当前fiber的flag中的标记进行对应的操作
 const commitMutationEffectsOnFiber = (
 	finishedWork: FiberNode,
 	root: FiberRootNode
@@ -94,6 +97,16 @@ const commitMutationEffectsOnFiber = (
 	}
 };
 
+/**
+ * 进行插入操作
+ *
+ *   1.调用getHostParent找到父节点(只能是HostComponent或HostRoot FunctionComponent无效)
+ *
+ * 	 2.调用getHostSibling找到兄弟节点(有对应的真实DOM 并且 改节点是稳定的 无Placement标记)
+ *
+ *   3.将当前节点插入到 兄弟节点前
+ *
+ * **/
 const commitPlacement = (finishedWork: FiberNode) => {
 	if (__DEV__) {
 		console.warn('执行Placement', finishedWork);
@@ -110,6 +123,7 @@ const commitPlacement = (finishedWork: FiberNode) => {
 	}
 };
 
+//用while循环找到第一个HostComponent或HostRoot父节点
 function getHostParent(fiber: FiberNode): Container | null {
 	let parent = fiber.return;
 	while (parent) {
@@ -129,7 +143,19 @@ function getHostParent(fiber: FiberNode): Container | null {
 	}
 	return null;
 }
+/**
+ * 找兄弟节点
+ * 
+ *	1. 为了防止出现<A/></div>
+		A -> <当前节点/>
+	当一开始找不到sibling时 会向上遍历找父节点的sibling(必须 没有 真实DOM)
 
+	2. 为了防止出现<当前节点/> <A/>
+	当sibling是没有真实DOM时要向下遍历
+
+	3.最后判断有没有Placement标记 有的话继续找后面的sibling
+
+ * **/
 function getHostSibling(fiber: FiberNode) {
 	let node: FiberNode = fiber;
 
@@ -168,6 +194,13 @@ function getHostSibling(fiber: FiberNode) {
 	}
 }
 
+/**
+ *将当前fiber的stateNode插入到父DOM中
+
+	1.如果有stateNode就直接插入，有before就插入到before前
+
+	2.没有stateNode 就遍历子节点和子节点的sibling 然后再次调用插入
+ * **/
 function insertOrAppendPlacementNodeIntoContainer(
 	finishedWork: FiberNode,
 	hostParent: Container,
@@ -182,13 +215,14 @@ function insertOrAppendPlacementNodeIntoContainer(
 		}
 		return;
 	}
+
 	const child = finishedWork.child;
 	if (child !== null) {
-		insertOrAppendPlacementNodeIntoContainer(child, hostParent);
+		insertOrAppendPlacementNodeIntoContainer(child, hostParent, before);
 		let sibling = child.sibling;
 
 		while (sibling !== null) {
-			insertOrAppendPlacementNodeIntoContainer(sibling, hostParent);
+			insertOrAppendPlacementNodeIntoContainer(sibling, hostParent, before);
 			sibling = sibling.sibling;
 		}
 	}

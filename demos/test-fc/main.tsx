@@ -9,36 +9,39 @@ ReactDOM.createRoot(document.getElementById('root')!).render(<App />);
 // 		<div>
 // 			<div onClick={() => setNum(num + 1)}>change</div>
 // 			<>
-// 				<div>
-// 					<span>0.1</span>
-// 					<span>
-// 						<p>0.2</p>
-// 					</span>
-// 				</div>
+// 				<div key="1">1</div>
 // 				{num % 2 === 1 && (
-// 					<>
-// 						<span>2.1</span>
-// 						<span>
-// 							<p>2.2</p>
-// 						</span>
-// 					</>
+// 					// <>
+// 					// 	<div>2</div>
+// 					// </>
+// 					<Child />
 // 				)}
-// 				<div>
-// 					<span>3.1</span>
-// 					<span>
-// 						<p>3.2</p>
-// 					</span>
-// 				</div>
+// 				<div key="3">3</div>
+// 				<div key="4">4</div>
 // 			</>
 // 		</div>
 // 	);
 // }
 
+// function Child() {
+// 	return (
+// 		<>
+// 			<>
+// 				<div>11</div>
+// 			</>
+// 			<div>
+// 				<div>22</div>
+// 				<div>33</div>
+// 			</div>
+// 		</>
+// 	);
+// }
+
 function App() {
 	const [num, setNum] = useState(0);
-	// useEffect(() => {
-	// 	console.log('app mount');
-	// }, []);
+	useEffect(() => {
+		console.log('app mount');
+	}, []);
 
 	useEffect(() => {
 		console.log('num change create', num);
