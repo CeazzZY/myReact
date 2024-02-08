@@ -39,9 +39,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(<App />);
 
 function App() {
 	const [num, setNum] = useState(0);
-	useEffect(() => {
-		console.log('app mount');
-	}, []);
+	// useEffect(() => {
+	// 	console.log('app mount');
+	// }, []);
 
 	useEffect(() => {
 		console.log('num change create', num);
