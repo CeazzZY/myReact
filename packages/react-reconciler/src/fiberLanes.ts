@@ -31,6 +31,10 @@ export function getHighestPriorityLane(lanes: Lanes): Lanes {
 	return lanes & -lanes;
 }
 
+export function isSubsetOfLanes(set: Lanes, subset: Lane) {
+	return (set & subset) === subset;
+}
+
 export function markRootFinished(root: FiberRootNode, lane: Lane) {
 	root.pendingLanes &= ~lane;
 }
