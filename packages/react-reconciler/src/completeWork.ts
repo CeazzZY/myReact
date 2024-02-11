@@ -13,7 +13,7 @@ import {
 	HostRoot,
 	HostText
 } from './workTags';
-import { NoFlags, Update } from './fiberFlags';
+import { NoFlags, Ref, Update } from './fiberFlags';
 
 export const completeWork = (wip: FiberNode) => {
 	//递归
@@ -26,12 +26,18 @@ export const completeWork = (wip: FiberNode) => {
 			if (current !== null && wip.stateNode) {
 				//update
 				markUpdate(wip);
+				if (current.ref !== wip.ref) {
+					markRef(wip);
+				}
 			} else {
 				//1.构建DOM
 				const instance = createInstance(wip.type, newProps);
 				//2.将DOM插入到DOM树中
 				appendAllChildren(instance, wip);
 				wip.stateNode = instance;
+				if (wip.ref === null) {
+					markRef(wip);
+				}
 			}
 			bubbleProperties(wip);
 			return null;
@@ -108,4 +114,8 @@ function bubbleProperties(wip: FiberNode) {
 		child = child.sibling;
 	}
 	wip.subtreeFlags |= subtreeFlags;
+}
+
+function markRef(fiber: FiberNode) {
+	fiber.flags |= Ref;
 }
