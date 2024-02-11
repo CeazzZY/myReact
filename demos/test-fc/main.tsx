@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom/client';
+import ReactDOM from 'react-dom/i';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(<App />);
 
