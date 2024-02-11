@@ -1,56 +1,83 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useTransition } from 'react';
 import ReactDOM from 'react-dom';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(<App />);
 
-// function App() {
-// 	const [num, setNum] = useState(0);
-// 	return (
-// 		<div>
-// 			<div onClick={() => setNum(num + 1)}>change</div>
-// 			<>
-// 				<div key="1">1</div>
-// 				{num % 2 === 1 && (
-// 					// <>
-// 					// 	<div>2</div>
-// 					// </>
-// 					<Child />
-// 				)}
-// 				<div key="3">3</div>
-// 				<div key="4">4</div>
-// 			</>
-// 		</div>
-// 	);
-// }
-
-// function Child() {
-// 	return (
-// 		<>
-// 			<>
-// 				<div>11</div>
-// 			</>
-// 			<div>
-// 				<div>22</div>
-// 				<div>33</div>
-// 			</div>
-// 		</>
-// 	);
-// }
-
 function App() {
-	const [num, setNum] = useState(100);
+	const [isPending, startTransition] = useTransition();
+	const [tab, setTab] = useState('contact');
 
+	function selectTab(nextTab) {
+		startTransition(() => {
+			setTab(nextTab);
+		});
+	}
 	return (
-		<ul onClick={() => setNum(50)}>
-			{new Array(num).fill(0).map((_, i) => {
-				return <Child key={i}>{i}</Child>;
-			})}
-		</ul>
+		<>
+			<TabButton isActive={tab === 'about'} onClick={() => selectTab('about')}>
+				About
+			</TabButton>
+			<TabButton isActive={tab === 'posts'} onClick={() => selectTab('posts')}>
+				Posts (slow)
+			</TabButton>
+			<TabButton
+				isActive={tab === 'contact'}
+				onClick={() => selectTab('contact')}>
+				Contact
+			</TabButton>
+			<hr />
+			{tab === 'about' && <AboutTab />}
+			{tab === 'posts' && <PostsTab />}
+			{tab === 'contact' && <ContactTab />}
+		</>
+	);
+}
+function TabButton({ children, isActive, onClick }) {
+	if (isActive) {
+		return <b>{children}</b>;
+	}
+	return (
+		<button
+			onClick={() => {
+				onClick();
+			}}>
+			{children}
+		</button>
 	);
 }
 
-function Child({ children }) {
-	const now = performance.now();
-	while (performance.now() - now < 4) {}
-	return <li>{children}</li>;
+function AboutTab() {
+	return <p>Welcome to my profile!</p>;
+}
+
+function PostsTab() {
+	// Log once. The actual slowdown is inside SlowPost.
+	console.log('[ARTIFICIALLY SLOW] Rendering 500 <SlowPost />');
+
+	const items: any = [];
+	for (let i = 0; i < 500; i++) {
+		items.push(<SlowPost key={i} index={i} />);
+	}
+	return <ul className="items">{items}</ul>;
+}
+
+function SlowPost({ index }) {
+	const startTime = performance.now();
+	while (performance.now() - startTime < 1) {
+		// Do nothing for 1 ms per item to emulate extremely slow code
+	}
+
+	return <li className="item">Post #{index + 1}</li>;
+}
+
+function ContactTab() {
+	return (
+		<>
+			<p>You can find me online here:</p>
+			<ul>
+				<li>admin@mysite.com</li>
+				<li>+123456789</li>
+			</ul>
+		</>
+	);
 }
