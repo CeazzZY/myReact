@@ -248,7 +248,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 		index: number,
 		element: any
 	): FiberNode | null {
-		const keyToUse = element.key !== null ? element.key : index;
+		const keyToUse = getElementKeyToUse(element, index);
 		const before = existingChildren.get(keyToUse);
 
 		//HostText
@@ -296,6 +296,18 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 		}
 		return null;
 	}
+}
+function getElementKeyToUse(element: any, index?: number): Key {
+	if (
+		Array.isArray(element) ||
+		typeof element === 'string' ||
+		typeof element === 'number' ||
+		element === undefined ||
+		element === null
+	) {
+		return index;
+	}
+	return element.key !== null ? element.key : index;
 }
 
 function useFiber(fiber: FiberNode, pendingProps: Props): FiberNode {

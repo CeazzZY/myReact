@@ -4,6 +4,7 @@ import { ReactElementType } from 'shared/ReactTypes';
 import { FiberNode } from './fiber';
 import { UpdateQueue, processUpdateQueue } from './updateQueue';
 import {
+	ContextProvider,
 	Fragment,
 	FunctionComponent,
 	HostComponent,
@@ -14,6 +15,7 @@ import { mountChildFibers, reconcileChildFibers } from './childFiber';
 import { renderWithHooks } from './fiberHooks';
 import { Lane } from './fiberLanes';
 import { Ref } from './fiberFlags';
+import { pushProvider } from './fiberContext';
 
 export const beginWork = (wip: FiberNode, renderLane: Lane) => {
 	//比较返回子FiberNode
@@ -28,6 +30,8 @@ export const beginWork = (wip: FiberNode, renderLane: Lane) => {
 			return updateFunctionComponent(wip, renderLane);
 		case Fragment:
 			return updateFragment(wip);
+		case ContextProvider:
+			return updateContextProvider(wip);
 		default:
 			if (__DEV__) {
 				console.warn('beginWork未实现类型');
@@ -90,4 +94,16 @@ function markRef(current: FiberNode | null, wip: FiberNode) {
 	) {
 		wip.flags |= Ref;
 	}
+}
+
+function updateContextProvider(wip: FiberNode) {
+	const providerType = wip.type;
+	const context = providerType._context;
+	const newProps = wip.pendingProps;
+
+	pushProvider(context, newProps.value);
+
+	const nextChildren = newProps.children;
+	reconcileChildren(wip, nextChildren);
+	return wip.child;
 }
