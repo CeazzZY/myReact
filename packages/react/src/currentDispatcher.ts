@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Action, ReactContext } from 'shared/ReactTypes';
+import { Action, ReactContext, Usable } from 'shared/ReactTypes';
 
 export type Dispatch<State> = (action: Action<State>) => void;
 
@@ -9,6 +9,7 @@ export interface Dispatcher {
 	useTransition: () => [boolean, (callback: () => void) => void];
 	useRef: <T>(initialValue: T) => { current: T };
 	useContext: <T>(context: ReactContext<T>) => T;
+	use: <T>(usable: Usable<T>) => T;
 }
 
 export const currentDispatcher: { current: Dispatcher | null } = {

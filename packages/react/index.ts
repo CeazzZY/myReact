@@ -1,3 +1,4 @@
+import { Usable } from './../shared/ReactTypes';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import currentDispatcher, {
 	Dispatcher,
@@ -35,6 +36,11 @@ export const useRef: Dispatcher['useRef'] = (initialValue) => {
 export const useContext: Dispatcher['useContext'] = (context) => {
 	const dispatcher = resolveDispatcher();
 	return dispatcher.useContext(context);
+};
+
+export const use: Dispatcher['use'] = <T>(useable: Usable<T>) => {
+	const dispatcher = resolveDispatcher();
+	return dispatcher.use(useable);
 };
 
 //内部数据共享层
