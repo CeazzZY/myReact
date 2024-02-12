@@ -60,6 +60,24 @@ export function insertChildToContainer(
 	container.insertBefore(child, before);
 }
 
+export function hideInstance(instance: Instance) {
+	const style = (instance as HTMLElement).style;
+	style.setProperty('display', 'none', 'important');
+}
+
+export function unhideInstance(instance: Instance) {
+	const style = (instance as HTMLElement).style;
+	style.display = '';
+}
+
+export function hideTextInstance(textInstance: TextInstance) {
+	textInstance.nodeValue = '';
+}
+
+export function unhideTextInstance(textInstance: TextInstance, text: string) {
+	textInstance.nodeValue = text;
+}
+
 export const scheduleMicroTask =
 	typeof queueMicrotask === 'function'
 		? queueMicrotask
