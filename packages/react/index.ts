@@ -5,7 +5,10 @@ import currentDispatcher, {
 } from './src/currentDispatcher';
 import ReactCurrentBatchConfig from './src/currentBatchConfig';
 import { jsx, isValidElement as isValidElementFn } from './src/jsx';
-export { REACT_FRAGMENT_TYPE as Fragment } from 'shared/ReactSymbols';
+export {
+	REACT_FRAGMENT_TYPE as Fragment,
+	REACT_SUSPENSE_TYPE as Suspense
+} from 'shared/ReactSymbols';
 export { createContext } from './src/context';
 //React
 
