@@ -37,20 +37,6 @@ import { HookHasEffect } from './hookEffectTags';
 
 let nextEffect: FiberNode | null = null;
 
-//1.commit 阶段入口 找到第一个fiber(fiber没有子节点 or fiber的子节点flag没有标记操作)
-//2.对该节点进行操作 并开始进行递归中的归
-export const commitMutationEffect = commitEffect(
-	'mutation',
-	MutationMask | PassiveMask,
-	commitMutationEffectsOnFiber
-);
-
-export const commitLayoutEffect = commitEffect(
-	'layout',
-	LayoutMask,
-	commitLayoutEffectsOnFiber
-);
-
 function commitEffect(
 	phrase: 'mutation' | 'layout',
 	mask: Flags,
@@ -81,6 +67,20 @@ function commitEffect(
 		}
 	};
 }
+
+//1.commit 阶段入口 找到第一个fiber(fiber没有子节点 or fiber的子节点flag没有标记操作)
+//2.对该节点进行操作 并开始进行递归中的归
+export const commitMutationEffect = commitEffect(
+	'mutation',
+	MutationMask | PassiveMask,
+	commitMutationEffectsOnFiber
+);
+
+export const commitLayoutEffect = commitEffect(
+	'layout',
+	LayoutMask,
+	commitLayoutEffectsOnFiber
+);
 
 //对当前fiber的flag中的标记进行对应的操作
 function commitMutationEffectsOnFiber(

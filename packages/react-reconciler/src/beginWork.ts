@@ -54,6 +54,27 @@ export const beginWork = (wip: FiberNode, renderLane: Lane) => {
 	return null;
 };
 
+function reconcileChildren(wip: FiberNode, children?: ReactElementType) {
+	const current = wip.alternate;
+
+	if (current !== null) {
+		wip.child = reconcileChildFibers(wip, current?.child, children);
+	} else {
+		wip.child = mountChildFibers(wip, null, children);
+	}
+}
+
+function markRef(current: FiberNode | null, wip: FiberNode) {
+	const ref = wip.ref;
+
+	if (
+		(current === null && ref !== null) ||
+		(current !== null && current.ref !== ref)
+	) {
+		wip.flags |= Ref;
+	}
+}
+
 function updateHostRoot(wip: FiberNode, renderLane: Lane) {
 	const baseState = wip.memoizedState;
 	const updateQueue = wip.updateQueue as UpdateQueue<Element>;
@@ -88,27 +109,6 @@ function updateFragment(wip: FiberNode) {
 	return wip.child;
 }
 
-function reconcileChildren(wip: FiberNode, children?: ReactElementType) {
-	const current = wip.alternate;
-
-	if (current !== null) {
-		wip.child = reconcileChildFibers(wip, current?.child, children);
-	} else {
-		wip.child = mountChildFibers(wip, null, children);
-	}
-}
-
-function markRef(current: FiberNode | null, wip: FiberNode) {
-	const ref = wip.ref;
-
-	if (
-		(current === null && ref !== null) ||
-		(current !== null && current.ref !== ref)
-	) {
-		wip.flags |= Ref;
-	}
-}
-
 function updateContextProvider(wip: FiberNode) {
 	const providerType = wip.type;
 	const context = providerType._context;
@@ -118,13 +118,6 @@ function updateContextProvider(wip: FiberNode) {
 
 	const nextChildren = newProps.children;
 	reconcileChildren(wip, nextChildren);
-	return wip.child;
-}
-
-function updateOffscreenComponent(wip: FiberNode) {
-	const nextProps = wip.pendingProps;
-	const nextChildren = nextProps.children;
-	reconcileChildFibers(wip, nextChildren);
 	return wip.child;
 }
 
@@ -168,6 +161,13 @@ function updateSuspenseComponent(wip: FiberNode) {
 			return updateSuspensePrimaryChildren(wip, nextPrimaryChildren);
 		}
 	}
+}
+
+function updateOffscreenComponent(wip: FiberNode) {
+	const nextProps = wip.pendingProps;
+	const nextChildren = nextProps.children;
+	reconcileChildFibers(wip, nextChildren);
+	return wip.child;
 }
 
 function mountSuspenseFallbackChildren(

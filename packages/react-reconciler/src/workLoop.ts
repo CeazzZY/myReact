@@ -119,39 +119,6 @@ function ensureRootIsScheduled(root: FiberRootNode) {
 	root.callbackPriority = curPriority;
 }
 
-function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
-	if (__DEV__) {
-		console.log(`开始${shouldTimeSlice ? '并发' : '同步'}更新`, root);
-	}
-
-	if (wipRootRenderLane !== lane) {
-		prepareFreshStack(root, lane);
-	}
-
-	do {
-		try {
-			shouldTimeSlice ? workLoopConcurrent() : workLoopSync();
-			break;
-		} catch (e) {
-			if (__DEV__) {
-				console.warn('workLoop出错', e);
-			}
-			workInProgress = null;
-		}
-	} while (true);
-
-	//中断
-	if (shouldTimeSlice && workInProgress !== null) {
-		return RootInComplete;
-	}
-	//render阶段执行完
-	if (!shouldTimeSlice && workInProgress !== null && __DEV__) {
-		console.error('render阶段结束时wip不应该不是null');
-	}
-
-	return RootCompleted;
-}
-
 function performConcurrentWorkOnRoot(
 	root: FiberRootNode,
 	didTimeout: boolean
@@ -219,6 +186,39 @@ function performSyncWorkOnRoot(root: FiberRootNode) {
 	} else {
 		console.error('还未实现同步更新状态');
 	}
+}
+
+function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
+	if (__DEV__) {
+		console.log(`开始${shouldTimeSlice ? '并发' : '同步'}更新`, root);
+	}
+
+	if (wipRootRenderLane !== lane) {
+		prepareFreshStack(root, lane);
+	}
+
+	do {
+		try {
+			shouldTimeSlice ? workLoopConcurrent() : workLoopSync();
+			break;
+		} catch (e) {
+			if (__DEV__) {
+				console.warn('workLoop出错', e);
+			}
+			workInProgress = null;
+		}
+	} while (true);
+
+	//中断
+	if (shouldTimeSlice && workInProgress !== null) {
+		return RootInComplete;
+	}
+	//render阶段执行完
+	if (!shouldTimeSlice && workInProgress !== null && __DEV__) {
+		console.error('render阶段结束时wip不应该不是null');
+	}
+
+	return RootCompleted;
 }
 
 function prepareFreshStack(root: FiberRootNode, lane: Lane) {
