@@ -8,6 +8,8 @@ export interface Update<State> {
 	lane: Lane;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	next: Update<any> | null;
+	hasEagerState: boolean;
+	eagerState: State | null;
 }
 
 export interface UpdateQueue<State> {
@@ -20,12 +22,16 @@ export interface UpdateQueue<State> {
 //创造一次更新
 export const createUpdate = <State>(
 	action: Action<State>,
-	lane: Lane
+	lane: Lane,
+	hasEagerState = false,
+	eagerState = null
 ): Update<State> => {
 	return {
 		action,
 		lane,
-		next: null
+		next: null,
+		hasEagerState,
+		eagerState
 	};
 };
 
@@ -113,10 +119,10 @@ export const processUpdateQueue = <State>(
 					newBaseQueueLast = clone;
 				}
 				const action = pending.action;
-				if (action instanceof Function) {
-					newState = action(baseState);
+				if (pending.hasEagerState) {
+					newState = pending.eagerState;
 				} else {
-					newState = action;
+					newState = basicStateReducer(baseState, action);
 				}
 			}
 			pending = pending.next as Update<any>;
@@ -134,3 +140,11 @@ export const processUpdateQueue = <State>(
 	}
 	return result;
 };
+
+export function basicStateReducer<State>(state: State, action: Action<State>) {
+	if (action instanceof Function) {
+		return action(state);
+	} else {
+		return action;
+	}
+}
