@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { WakeAble } from 'shared/ReactTypes';
 import { FiberRootNode } from './fiber';
-import { Lane } from './fiberLanes';
+import { Lane, markRootPinged } from './fiberLanes';
 import { ensureRootIsScheduled, markRootUpdated } from './workLoop';
 import { ShouldCapture } from './fiberFlags';
 import { getSuspenseHandler } from './suspenseContext';
@@ -45,6 +45,7 @@ function attachPingListener(
 		if (pingCache !== null) {
 			pingCache.delete(wakeAble);
 		}
+		markRootPinged(root, lane);
 		markRootUpdated(root, lane);
 		ensureRootIsScheduled(root);
 	}
