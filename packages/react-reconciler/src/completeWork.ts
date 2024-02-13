@@ -18,6 +18,7 @@ import {
 } from './workTags';
 import { NoFlags, Ref, Update, Visibility } from './fiberFlags';
 import { popProvider } from './fiberContext';
+import { popSuspenseHandler } from './suspenseContext';
 
 export const completeWork = (wip: FiberNode) => {
 	//递归
@@ -73,6 +74,7 @@ export const completeWork = (wip: FiberNode) => {
 			bubbleProperties(wip);
 			return null;
 		case SuspenseComponent:
+			popSuspenseHandler();
 			const offscreenFiber = wip.child as FiberNode;
 			const isHidden = offscreenFiber.pendingProps.mode === 'hidden';
 			const currentOffscreenFiber = offscreenFiber.alternate;

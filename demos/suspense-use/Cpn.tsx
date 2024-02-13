@@ -1,14 +1,4 @@
-import { Fragment, Suspense, useEffect, useState, use } from 'react';
-import ReactDOM from 'react-dom/client';
-
-// 简单例子 + 没有Suspense catch的情况
-function App() {
-	return (
-		<Suspense fallback={<div>loading...</div>}>
-			<Cpn id={0} timeout={1000} />
-		</Suspense>
-	);
-}
+import { useState, use, useEffect } from 'react';
 
 const delay = (t) =>
 	new Promise((r) => {
@@ -27,7 +17,7 @@ function fetchData(id, timeout) {
 	}));
 }
 
-function Cpn({ id, timeout }) {
+export function Cpn({ id, timeout }) {
 	const [num, updateNum] = useState(0);
 	const { data } = use(fetchData(id, timeout));
 
@@ -48,5 +38,3 @@ function Cpn({ id, timeout }) {
 		</ul>
 	);
 }
-
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);

@@ -23,8 +23,15 @@ import {
 import { mountChildFibers, reconcileChildFibers } from './childFiber';
 import { renderWithHooks } from './fiberHooks';
 import { Lane } from './fiberLanes';
-import { ChildDeletion, Placement, Ref } from './fiberFlags';
+import {
+	ChildDeletion,
+	DidCapture,
+	NoFlags,
+	Placement,
+	Ref
+} from './fiberFlags';
 import { pushProvider } from './fiberContext';
+import { pushSuspenseHandler } from './suspenseContext';
 
 export const beginWork = (wip: FiberNode, renderLane: Lane) => {
 	//比较返回子FiberNode
@@ -126,14 +133,17 @@ function updateSuspenseComponent(wip: FiberNode) {
 	const nextProps = wip.pendingProps;
 
 	let showFallback = false;
-	const didSuspend = true;
+	const didSuspend = (wip.flags & DidCapture) !== NoFlags;
 
 	if (didSuspend) {
 		showFallback = true;
+		wip.flags &= ~DidCapture;
 	}
 
 	const nextPrimaryChildren = nextProps.children;
 	const nextFallbackChildren = nextProps.fallback;
+
+	pushSuspenseHandler(wip);
 
 	if (current === null) {
 		//mount
@@ -166,7 +176,7 @@ function updateSuspenseComponent(wip: FiberNode) {
 function updateOffscreenComponent(wip: FiberNode) {
 	const nextProps = wip.pendingProps;
 	const nextChildren = nextProps.children;
-	reconcileChildFibers(wip, nextChildren);
+	reconcileChildren(wip, nextChildren);
 	return wip.child;
 }
 
@@ -181,7 +191,7 @@ function mountSuspenseFallbackChildren(
 	};
 	const primaryChildFragment = createFiberFromOffscreen(primaryChildProps);
 	const fallbackChildFragment = createFiberFromFragment(fallbackChildren, null);
-	// 父组件Suspense已经mount，所以需要fallback标记Placement
+
 	fallbackChildFragment.flags |= Placement;
 
 	primaryChildFragment.return = wip;
@@ -192,17 +202,14 @@ function mountSuspenseFallbackChildren(
 	return fallbackChildFragment;
 }
 
-function mountSuspensePrimaryChildren(
-	workInProgress: FiberNode,
-	primaryChildren: any
-) {
+function mountSuspensePrimaryChildren(wip: FiberNode, primaryChildren: any) {
 	const primaryChildProps: OffscreenProps = {
 		mode: 'visible',
 		children: primaryChildren
 	};
 	const primaryChildFragment = createFiberFromOffscreen(primaryChildProps);
-	workInProgress.child = primaryChildFragment;
-	primaryChildFragment.return = workInProgress;
+	wip.child = primaryChildFragment;
+	primaryChildFragment.return = wip;
 	return primaryChildFragment;
 }
 

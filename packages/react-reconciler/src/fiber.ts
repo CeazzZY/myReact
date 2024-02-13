@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Container } from 'hostConfig';
 import { Flags, NoFlags } from './fiberFlags';
-import { Key, Props, ReactElementType, Ref } from 'shared/ReactTypes';
+import { Key, Props, ReactElementType, Ref, WakeAble } from 'shared/ReactTypes';
 import {
 	ContextProvider,
 	Fragment,
@@ -87,6 +87,8 @@ export class FiberRootNode {
 	callbackNode: CallbackNode | null;
 	callbackPriority: Lane;
 
+	pingCache: WeakMap<WakeAble<any>, Set<Lane>> | null;
+
 	constructor(container: Container, hostRootFiber: FiberNode) {
 		this.container = container;
 		this.current = hostRootFiber;
@@ -103,6 +105,8 @@ export class FiberRootNode {
 
 		this.callbackNode = null;
 		this.callbackPriority = NoLane;
+
+		this.pingCache = null;
 	}
 }
 
@@ -168,6 +172,5 @@ export function createFiberFromFragment(elements: any[], key: Key): FiberNode {
 
 export function createFiberFromOffscreen(pendingProps: OffscreenProps) {
 	const fiber = new FiberNode(OffscreenComponent, pendingProps, null);
-	// TODO stateNode
 	return fiber;
 }
