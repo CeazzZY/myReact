@@ -58,18 +58,24 @@ let wipSuspendedReason: SuspendedReason = NotSuspended;
 let wipThrownValue: any;
 
 export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
-	const root = markUpdateFromFiberToRoot(fiber);
+	const root = markUpdateLaneFromFiberToRoot(fiber, lane);
 	markRootUpdated(root, lane);
 	ensureRootIsScheduled(root);
 }
 
 //传入更新的fiber，会一直向上遍历找到fiberRoot
-function markUpdateFromFiberToRoot(fiber: FiberNode) {
+function markUpdateLaneFromFiberToRoot(fiber: FiberNode, lane: Lane) {
 	let node = fiber;
 	let parent = node.return;
 
-	//rootFiber没有return，只有stateNode。所以这一步会找到rootFiber
 	while (parent !== null) {
+		parent.childrenLanes = mergeLanes(parent.childrenLanes, lane);
+		const alternate = parent.alternate;
+		if (alternate !== null) {
+			alternate.childrenLanes = mergeLanes(alternate.childrenLanes, lane);
+		}
+
+		//rootFiber没有return，只有stateNode。所以这一步会找到rootFiber
 		node = parent;
 		parent = node.return;
 	}

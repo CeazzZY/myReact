@@ -40,7 +40,9 @@ export function updateContainer(
 		//向根fiber的更新队列中添加一次更新
 		enqueueUpdate(
 			hostRootFiber.updateQueue as UpdateQueue<ReactElementType | null>,
-			update
+			update,
+			hostRootFiber,
+			lane
 		);
 
 		scheduleUpdateOnFiber(hostRootFiber, lane);
